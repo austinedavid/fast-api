@@ -12,3 +12,17 @@ class UserSchema(BaseModel):
 class UpdateUser(BaseModel):
     user_name: Optional[str] = None
     married: Optional[bool] = None
+
+
+# creating pydantic model for the profile
+class ProfileModel(BaseModel):
+    state: str
+    lga: str
+    age: int = Field(ge=18)
+    userid: str
+
+
+class PostModel(BaseModel):
+    title: str = Field(min_length=10, max_length=50)
+    description: str = Field(min_length=10, max_length=300)
+    userId: str

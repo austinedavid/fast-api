@@ -11,6 +11,14 @@ from .user_service import (
     get_user_by_id,
 )
 from models import UpdateUser
+from middlewares.middlewares import (
+    get_auth_token,
+    limit_present,
+    CommonBuyQuries,
+    CommonInput,
+    path_operator_decorator,
+    PathFunc,
+)
 
 
 # create the Apirouter function
@@ -40,12 +48,12 @@ async def get_users(db: Session = Depends(get_db)):
         raise HTTPException(404, detail={"message": f"message: {e}"})
 
 
-@router.get("/{username}")
-async def get_single_user(username: str, db: Session = Depends(get_db)):
-    try:
-        return get_based_on_username_and_marriage(db, username)
-    except Exception as e:
-        raise HTTPException(400, f"message: {e}")
+# @router.get("/{username}")
+# async def get_single_user(username: str, db: Session = Depends(get_db)):
+#     try:
+#         return get_based_on_username_and_marriage(db, username)
+#     except Exception as e:
+#         raise HTTPException(400, f"message: {e}")
 
 
 @router.put("/{id}")
@@ -82,3 +90,19 @@ async def delete_user(id: int, db: Session = Depends(get_db)):
         return f"{user_info.user_name} is deleted successfully!!!"
     except Exception as e:
         return HTTPException(505, f"message: {e}")
+
+
+@router.get("/middle-ware")
+async def check_dependency(
+    common: Annotated[CommonBuyQuries, Depends(CommonBuyQuries)],
+):
+    return common
+
+
+@router.post(
+    "/common-user/{id}",
+    dependencies=[Depends(path_operator_decorator), Depends(PathFunc)],
+)
+async def common_users(id: str, payload: Annotated[dict, Depends(CommonInput)]):
+    print(payload)
+    return payload

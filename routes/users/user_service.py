@@ -1,6 +1,6 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from models import UserSchema, UpdateUser
-from db import User
+from db import User, Profile, Posts
 
 
 def get_user_by_id(db: Session, id: int):
@@ -19,7 +19,12 @@ async def create_new_user(user_info: UserSchema, db: Session):
 
 
 def get_all_the_user(db: Session):
-    all_user = db.query(User).all()
+    all_user = (
+        db.query(User)
+        .options(selectinload(User.profile).load_only(Profile.id, Profile.age))
+        .options(selectinload(User.posts).load_only(Posts.id, Posts.title))
+        .all()
+    )
     return all_user
 
 
