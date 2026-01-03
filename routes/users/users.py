@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Body, Depends, HTTPException
-from models import UserSchema
+from fastapi import APIRouter, Body, Depends, HTTPException, status
+from models import UserSchema, UserLogin
 from typing import Annotated
 from db import get_db
 from sqlalchemy.orm import Session
@@ -19,6 +19,10 @@ from middlewares.middlewares import (
     path_operator_decorator,
     PathFunc,
 )
+from utils.password import verify_password
+from jose import jwt, JWTError
+import os
+from datetime import datetime, timedelta
 
 
 # create the Apirouter function
@@ -106,3 +110,27 @@ async def check_dependency(
 async def common_users(id: str, payload: Annotated[dict, Depends(CommonInput)]):
     print(payload)
     return payload
+
+
+# here we login a user
+@router.post("/login")
+async def login_user(
+    payload: Annotated[UserLogin, Body()], db: Session = Depends(get_db)
+):
+    # get the user and check if it actually exists
+    user_info = db.query(User).filter(User.email == payload.email).first()
+    print(user_info)
+    if not user_info:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    # check if the password matches now
+    if not verify_password(payload.password, user_info.password):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+    # now we move ahead and perform creation of jwt
+    expires = datetime.utcnow() + timedelta(minutes=30)
+    print(expires)
+    token = jwt.encode(
+        {"username": user_info.user_name, "email": user_info.email, "exp": expires},
+        os.getenv("JWT_SECRETE"),
+        os.getenv("JWT_ALGO"),
+    )
+    return {"token": token, "type": "Bearer"}

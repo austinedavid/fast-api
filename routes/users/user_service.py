@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session, selectinload
 from models import UserSchema, UpdateUser
 from db import User, Profile, Posts
+from utils.password import hash_password
 
 
 def get_user_by_id(db: Session, id: int):
@@ -9,7 +10,10 @@ def get_user_by_id(db: Session, id: int):
 
 
 async def create_new_user(user_info: UserSchema, db: Session):
-    user_json = user_info.model_dump()
+    user_json = {
+        **user_info.model_dump(),
+        "password": hash_password(user_info.password),
+    }
     new_user = User(**user_json)
     db.add(new_user)
     db.commit()

@@ -4,6 +4,9 @@ from routes.users import users
 from routes.profile import init as profile
 from routes.post import init as post
 from db import Base, engine
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 app = FastAPI(

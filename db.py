@@ -42,6 +42,7 @@ class User(Base):
     )
     email: Mapped[str] = mapped_column(String, unique=True, index=True)
     user_name: Mapped[str] = mapped_column(String)
+    password: Mapped[str] = mapped_column(String)
     married: Mapped[bool] = mapped_column(Boolean)
     profile: Mapped["Profile"] = relationship(
         back_populates="user", cascade="all, delete-orphan", uselist=False
